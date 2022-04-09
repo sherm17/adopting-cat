@@ -17,15 +17,16 @@ start = DummyOperator(task_id='start')
 
 dag = DAG(
     dag_id="scrape-spca",
-    start_date=airflow.utils.dates.days_ago(0),
-    schedule_interval=timedelta(days=1),
+    start_date=airflow.utils.dates.days_ago(3),
+    max_active_runs=1,
+    schedule_interval="@hourly"
 )
 
 
 email= EmailOperator(
        task_id='email',
        to=Variable.get('sender_email'),
-       subject='New Cats Up for Adoption',
+       subject='Cat Adoption Updates',
        html_content="{{ task_instance.xcom_pull(task_ids='check_for_new_cats', key='new_cats') }}",
        dag=dag
 )
