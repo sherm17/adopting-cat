@@ -68,25 +68,28 @@ def check_for_new_cats(**context):
         curr_cat.pop('_sa_instance_state', None)
         new_cats_list.append(curr_cat)
 
-    for new_cat in new_cats_list:
-        new_cat_message += _construct_email_mess_for_newcats(new_cat)
-   
-        # copy new cats to cat table, which tracks all cats
-        a_cat = Cat(
-            id=new_cat['id'],
-            name=new_cat['name'],
-            sex=new_cat['sex'],
-            breed=new_cat['breed'],
-            age_in_year=new_cat['age_in_year'],
-            location=new_cat['location'],
-            notes=new_cat['notes'],
-            weight_in_lbs=new_cat['weight_in_lbs'],
-            status=new_cat['status'],
-            photo_urls=new_cat['photo_urls'],
-            url=new_cat['url']
-        )
-        session.add(a_cat)
-        session.commit()
+    if len(new_cats_list) == 0:
+        new_cat_message = 'There no new cats listed in the past hour'
+    else:
+        for new_cat in new_cats_list:
+            new_cat_message += _construct_email_mess_for_newcats(new_cat)
+    
+            # copy new cats to cat table, which tracks all cats
+            a_cat = Cat(
+                id=new_cat['id'],
+                name=new_cat['name'],
+                sex=new_cat['sex'],
+                breed=new_cat['breed'],
+                age_in_year=new_cat['age_in_year'],
+                location=new_cat['location'],
+                notes=new_cat['notes'],
+                weight_in_lbs=new_cat['weight_in_lbs'],
+                status=new_cat['status'],
+                photo_urls=new_cat['photo_urls'],
+                url=new_cat['url']
+            )
+            session.add(a_cat)
+            session.commit()
 
     context["task_instance"].xcom_push(key='new_cats', value=new_cat_message)
     session.close()
