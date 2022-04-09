@@ -4,7 +4,11 @@ from selenium.webdriver.common.by import By
 import time
 import re
 import selenium
+import logging
 
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 class SpcaCatWebScraper(ABC):
     
@@ -38,7 +42,7 @@ class EastBaySpcaWebScraper(SpcaCatWebScraper):
                 next_photo_button.click()
 
         except selenium.common.exceptions.NoSuchElementException:
-            print("only one photo for this cat")
+            logger.info('There is only one photo for this cat')
         return cat_photo_url_list
 
 
@@ -222,7 +226,7 @@ class SanFranSpcaWebScraper(SpcaCatWebScraper):
 
                 self.cat_list.append(cat_data)
             except selenium.common.exceptions.NoSuchElementException:
-                print('cat url may not be working')
+                logger.info('This cat url may not be valid')
         self.browser.quit()
         return self.cat_list
 
