@@ -21,7 +21,7 @@ class EastBaySpcaWebScraper(SpcaCatWebScraper):
 
 
     def _get_photo_urls(self, cat_modal_element):
-        # get photos
+        """Return list of photo urls"""
         cat_photo_url_list = []
         first_photo = cat_modal_element.find_element(By.CSS_SELECTOR, value='aside.animalModal_image img').get_attribute('src')
         cat_photo_url_list.append(first_photo)
@@ -43,6 +43,11 @@ class EastBaySpcaWebScraper(SpcaCatWebScraper):
 
 
     def _parse_cat_modal(self, cat_modal_element):
+        """
+            return dictionary holding cat info. keys are
+            id, name, age, sex, breed, age_in_year, location, 
+            notes, weight_in_lbs, status, photo_urls, url
+        """
         cat_info = {}
         animal_info = cat_modal_element.find_element(By.CSS_SELECTOR, value='div.animalModal_info')
         
@@ -60,7 +65,6 @@ class EastBaySpcaWebScraper(SpcaCatWebScraper):
 
         animal_description = cat_modal_element.find_element(By.XPATH, value="//div[@class='animalModal_description']/p[1]")
         animal_description_text = animal_description.text
-
         cat_info['notes'] = animal_description_text
 
         # recalculate age into decimal number
@@ -89,7 +93,7 @@ class EastBaySpcaWebScraper(SpcaCatWebScraper):
 
 
     def get_cat_data(self):
-
+        """Return list containing dictionaries of cat info"""
         self.browser.get(self.url)
         filter_labels = self.browser.find_elements(By.CSS_SELECTOR, value='span.filter-label')
         for label in filter_labels:
@@ -119,6 +123,8 @@ class SanFranSpcaWebScraper(SpcaCatWebScraper):
     def __init__(self):
         self.url = 'https://www.sfspca.org/adoptions/cats/?'
         self.browser = webdriver.Firefox()
+        self.cat_list = []
+
 
     def _parse_cat_weight_str(self, cat_weight_str):
         if ';' in cat_weight_str:
@@ -133,7 +139,8 @@ class SanFranSpcaWebScraper(SpcaCatWebScraper):
     def _parse_cat_detail(self, url, adoption_detail_web_elem, cat_photo_url_containers):
         """
             return dictionary holding cat info. keys are
-            id, age, weight, gender, breed, photo_urls
+            id, name, age, sex, breed, age_in_year, location, 
+            notes, weight_in_lbs, status, photo_urls, url
         """
         cat_info = {}
 
@@ -199,8 +206,7 @@ class SanFranSpcaWebScraper(SpcaCatWebScraper):
 
 
     def get_cat_data(self):
-        cat_list = []
-
+        """Return list containing dictionaries of cat info"""
         self.browser.get(self.url)
         cat_detail_anchor = self.browser.find_elements(By.CSS_SELECTOR, value='a.userContent__permalink')
 
@@ -214,11 +220,11 @@ class SanFranSpcaWebScraper(SpcaCatWebScraper):
                 cat_photo_link_container = self.browser.find_elements(By.CSS_SELECTOR, value='div.adoptionCarousel--item img')            
                 cat_data = self._parse_cat_detail(url, adoption_detail_web_elem, cat_photo_link_container)
 
-                cat_list.append(cat_data)
+                self.cat_list.append(cat_data)
             except selenium.common.exceptions.NoSuchElementException:
                 print('cat url may not be working')
         self.browser.quit()
-        return cat_list
+        return self.cat_list
 
 
 def run_eastbay_spca_scraper(**context):
