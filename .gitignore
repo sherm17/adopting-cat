@@ -1,0 +1,11 @@
+
+geckodriver.log
+
+# test scripts
+test*.py
+
+# airflow
+airflow/
+
+
+postgresdbpass
