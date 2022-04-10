@@ -62,6 +62,6 @@ airflow variables set key=cat_database_connect_str value=DATABASE_CONNECTION_STR
 ```
 
 ## Adding new websites to scrape from
-Adding a new website to scrape from can be done easily. You will need to create a new class in webscraping/spca_webscrape.py. This class should implement the abstract get_cat_data method. This method should return a list of dictionaries that holds cat info. Lastly, define a new method that will instantiate an instance of the new class and run the get_cat_data method. The new method should also push the data onto Airflow using xcom. Then in data_processing/check_cats.py, grab the new data via xcom.
+Adding a new website to scrape from can be done easily. You will need to create a new class in webscraping/spca_webscrape.py. This class should implement the abstract get_cat_data method. This method should return a list of dictionaries that holds cat info. Then, define a new function that will instantiate an instance of the new class and run the corresponding get_cat_data method. The new function should also push the data onto Airflow using xcom. In data_processing/check_cats.py, grab the new data via xcom. Lastly, import the new function that you defined in spca_webscrape.py and include it in dag.py in the root folder.
 
 
