@@ -61,3 +61,11 @@ airflow variables set key=receiver_email value=SOME_EMAIL
 airflow variables set key=cat_database_connect_str value=DATABASE_CONNECTION_STRING
 ```
 
+#### Run airflow webserver and scheduler to see airflow interface
+```sh
+# start the web server, default port is 8080
+airflow webserver
+
+# in a new another terminal
+airflow scheduler
+```
