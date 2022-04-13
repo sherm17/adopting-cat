@@ -25,7 +25,7 @@ dag = DAG(
 
 email= EmailOperator(
        task_id='email',
-       to=Variable.get('sender_email'),
+       to=Variable.get('receiver_email'),
        subject='Cat Adoption Updates',
        html_content="{{ task_instance.xcom_pull(task_ids='check_for_new_cats', key='new_cats') }}",
        dag=dag
