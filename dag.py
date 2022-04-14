@@ -9,7 +9,7 @@ from airflow.models import Variable
 
 # import sys
 # sys.path.append('/home/speng/Desktop/projects/spca-cat-adoption')
-from webscraping import spca_webscrape
+from webscraping import webscrape
 from data_processing import check_cats
 from data_processing import clean_up
 
@@ -34,13 +34,13 @@ email= EmailOperator(
 
 scrape_eastbay_spca = PythonOperator(
     task_id='scrape_eastbay_spca',
-    python_callable=spca_webscrape.run_eastbay_spca_scraper,
+    python_callable=webscrape.run_eastbay_spca_scraper,
     dag=dag
 )
 
 scrape_sf_spca = PythonOperator(
     task_id='scrape_sf_spca',
-    python_callable=spca_webscrape.run_sf_spca_scraper,
+    python_callable=webscrape.run_sf_spca_scraper,
     dag=dag
 )
 
