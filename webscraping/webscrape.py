@@ -10,14 +10,14 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-class SpcaCatWebScraper(ABC):
+class CatAdoptionWebScraper(ABC):
     
     @abstractclassmethod
     def get_cat_data(self):
         pass
 
 
-class EastBaySpcaWebScraper(SpcaCatWebScraper):
+class EastBaySpcaWebScraper(CatAdoptionWebScraper):
     def __init__(self):
         self.url = 'https://eastbayspca.org/adoptions/adopt-me/#'
         self.browser = webdriver.Firefox()
@@ -122,7 +122,7 @@ class EastBaySpcaWebScraper(SpcaCatWebScraper):
         return self.cat_list
 
 
-class SanFranSpcaWebScraper(SpcaCatWebScraper):
+class SanFranSpcaWebScraper(CatAdoptionWebScraper):
 
     def __init__(self):
         self.url = 'https://www.sfspca.org/adoptions/cats/?'
