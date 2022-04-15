@@ -33,8 +33,11 @@ def check_for_new_cats(**context):
     san_fran_spca_cats = context['task_instance'].xcom_pull(
         task_ids='scrape_sf_spca', key='SF_SPCA_Adoptable_Cats'
     )
+    jellysplace_spca_cats = context['task_instance'].xcom_pull(
+        task_ids='scrape_sf_spca', key='Jellys_Place_Adoptable_Cats'
+    )
 
-    all_cats = san_fran_spca_cats + east_bay_spca_cats
+    all_cats = san_fran_spca_cats + east_bay_spca_cats + jellysplace_spca_cats
 
     cat_obj_list = [
         CatOnWebPage(
