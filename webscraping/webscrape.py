@@ -328,7 +328,7 @@ class JellysPlaceWebScraper(CatAdoptionWebScraper):
             # add url to cat dict
             cat_data['url'] = link
             self.cat_list.append(cat_data)
-        print(self.cat_list)
+        self.browser.quit()
         return self.cat_list
 
 def run_eastbay_spca_scraper(**context):
