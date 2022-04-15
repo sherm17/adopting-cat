@@ -1,6 +1,8 @@
 from abc import ABC, abstractclassmethod
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import time
 import re
 import selenium
@@ -214,7 +216,7 @@ class SanFranSpcaWebScraper(CatAdoptionWebScraper):
         self.browser.get(self.url)
         cat_detail_anchor = self.browser.find_elements(By.CSS_SELECTOR, value='a.userContent__permalink')
 
-        cat_detail_url = [link.get_attribute("href") for link in cat_detail_anchor]
+        cat_detail_url = [link.get_attribute('href') for link in cat_detail_anchor]
 
         for url in cat_detail_url:
             self.browser.get(url)
@@ -226,10 +228,108 @@ class SanFranSpcaWebScraper(CatAdoptionWebScraper):
 
                 self.cat_list.append(cat_data)
             except selenium.common.exceptions.NoSuchElementException:
-                logger.info('This cat url may not be valid')
+                logger.info('Webscraping SF SPCA: This cat url may not be valid')
         self.browser.quit()
         return self.cat_list
 
+
+class JellysPlaceWebScraper(CatAdoptionWebScraper):
+    """Jellys place gets their cat adoption data from shelterluv.com"""
+
+    def __init__(self):
+        self.url = 'https://www.shelterluv.com/embed/24538?species=Cat'
+        self.browser = webdriver.Firefox()
+        self.cat_list = []
+
+    def _parse_cat_age(self, cat_age_str):
+        """example format 3Y/0M/0W """
+        years, months, weeks = cat_age_str.split('/')
+        years = int(re.search(r'\d+', years).group())
+        months = int(re.search(r'\d+', months).group())
+        weeks = int(re.search(r'\d+', weeks).group())
+
+        if months > 0:
+            months = months / 12
+        if weeks > 0:
+            weeks = weeks / 52
+
+        age = round((years + months + weeks), 2)
+        return age
+
+
+    def _get_cat_photo_urls(self, cat_info_container):
+        """
+        Each cat adoption link can contain one or more urls.
+        The ones that only contain one photo url have the image inside
+        a div with class 'single-image-container'.
+        The ones that have multiple photo urls have the images inside
+        a div with class 'VueCarousel-slide'.
+        There can be cats that have no photos as well. The default photo
+        location is 'https://www.shelterluv.com/img/default/default_cat.png'
+        """
+        photo_urls = None
+        try:
+            image_url = cat_info_container.find_element(
+                By.XPATH, value="//div[@class='p-2']/div/div/div[2]/div/following-sibling::img"
+            ).get_attribute('src')
+            photo_urls = [image_url]
+        except selenium.common.exceptions.NoSuchElementException:
+            logger.info('Webscraping Jellys Place: Single photo not found')
+        
+        try:
+            image_elements = cat_info_container.find_elements(
+                By.CSS_SELECTOR, value='div.VueCarousel-slide img'
+            )
+            photo_urls = [elem.get_attribute('src') for elem in image_elements]
+        except selenium.common.exceptions.NoSuchElementException:
+            logger.info('Webscraping Jellys Place: Multiple Photos not found')
+        
+        return photo_urls
+        
+
+    def _parse_cat_info(self, cat_info_container):
+        cat_detail_container = cat_info_container.find_elements(By.XPATH, value="//div[@class='p-2']/div/div/div[4]/div[1]/div")
+        cat_info = {}
+
+        for info in cat_detail_container:
+            key_and_val = info.find_elements(By.CSS_SELECTOR, value='div')
+            key = key_and_val[0].text.lower().strip()
+            val = key_and_val[1].text.lower().strip()
+            cat_info[key] = val
+
+        cat_age_str = cat_info['age']
+
+        cat_info['age_in_year'] = self._parse_cat_age(cat_age_str)
+        cat_info['photo_urls'] = self._get_cat_photo_urls(cat_info_container)
+
+        cat_info['id'] = cat_info.pop('animal id')
+        cat_info['sex'] = cat_info['sex'][0]
+        cat_info['location'] = 'jellys_place'
+        cat_info['status'] = 'available for adoption'
+        cat_info['weight_in_lbs'] = None
+        return cat_info
+    
+
+    def get_cat_data(self):
+        """Return list containing dictionaries of cat info"""
+        self.browser.get(self.url)
+
+        container_div = WebDriverWait(self.browser, 3).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'div#app'))
+        )
+        time.sleep(3)
+        cat_anchor_elements = container_div.find_elements(By.TAG_NAME, value='a')
+        cat_info_links = [anchor.get_attribute('href') for anchor in cat_anchor_elements]
+        for link in cat_info_links:
+            self.browser.get(link)
+            cat_info_container = self.browser.find_element(By.CSS_SELECTOR, value='div#app')
+            cat_data = self._parse_cat_info(cat_info_container)
+
+            # add url to cat dict
+            cat_data['url'] = link
+            self.cat_list.append(cat_data)
+        print(self.cat_list)
+        return self.cat_list
 
 def run_eastbay_spca_scraper(**context):
     e = EastBaySpcaWebScraper()
@@ -241,4 +341,7 @@ def run_sf_spca_scraper(**context):
     cats = sf.get_cat_data()
     context["task_instance"].xcom_push(key='SF_SPCA_Adoptable_Cats', value=cats)
 
-
+def run_jellys_place_scraper(**context):
+    jellysplace = JellysPlaceWebScraper()
+    cats = jellysplace.get_cat_data()
+    context["task_instance"].xcom_push(key='Jellys_Place_Adoptable_Cats', value=cats)
