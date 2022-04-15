@@ -62,6 +62,6 @@ clean_up = PythonOperator(
 )
 
 
-start >> [scrape_sf_spca, scrape_eastbay_spca]
-[scrape_eastbay_spca, scrape_sf_spca] >> check_for_new_cats >> email >> clean_up
+start >> [scrape_sf_spca, scrape_eastbay_spca, scrape_jellysplace]
+[scrape_eastbay_spca, scrape_sf_spca, scrape_jellysplace] >> check_for_new_cats >> email >> clean_up
  
