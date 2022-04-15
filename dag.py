@@ -4,7 +4,6 @@ from airflow import DAG
 from airflow.operators.dummy import DummyOperator
 from airflow.operators.python import PythonOperator
 from airflow.operators.email_operator import EmailOperator
-from datetime import datetime, timedelta
 from airflow.models import Variable
 
 # import sys
@@ -31,7 +30,6 @@ email= EmailOperator(
        dag=dag
 )
 
-
 scrape_eastbay_spca = PythonOperator(
     task_id='scrape_eastbay_spca',
     python_callable=webscrape.run_eastbay_spca_scraper,
@@ -44,9 +42,9 @@ scrape_sf_spca = PythonOperator(
     dag=dag
 )
 
-clean_up = PythonOperator(
-    task_id='clean_up',
-    python_callable=clean_up.run_clean_up,
+scrape_jellysplace = PythonOperator(
+    task_id='scrape_jellys_place',
+    python_callable=webscrape.run_jellys_place_scraper,
     dag=dag
 )
 
@@ -56,6 +54,13 @@ check_for_new_cats = PythonOperator(
     trigger_rule="none_failed",
     dag=dag
 )
+
+clean_up = PythonOperator(
+    task_id='clean_up',
+    python_callable=clean_up.run_clean_up,
+    dag=dag
+)
+
 
 start >> [scrape_sf_spca, scrape_eastbay_spca]
 [scrape_eastbay_spca, scrape_sf_spca] >> check_for_new_cats >> email >> clean_up
